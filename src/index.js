@@ -1,31 +1,52 @@
 import "./reset.css";
 import "./styles.css";
 
-const buttonsList = document.querySelectorAll('.dropdown')
-const buttons = Array.from(buttonsList);
+let prevSlideIndex = 0
+let currentSlideIndex = 0
+let slideTimeoutId = null;
 
-buttons.forEach(button => {
-    const toggleButton = button.querySelector('.toggle')
+const slides = Array.from(document.querySelectorAll('.frames'))
+const navigationDots = Array.from(document.querySelectorAll('.circle'))
 
-    toggleButton.addEventListener('click', () => {
-        const hiddenButtons = button.querySelectorAll('button:not(.toggle)') 
-        const hiddenButtonsArray = Array.from(hiddenButtons);
+const nextButton = document.querySelector('.next')
+const prevButton = document.querySelector('.prev')
+nextButton.addEventListener('click', () => getNewSlideIndex(1))
+prevButton.addEventListener('click', () => getNewSlideIndex(-1))
 
-        hiddenButtons.forEach(hiddenButton => {
-            if (hiddenButton.classList.contains('hidden')) {
-                removeHiddenClass(hiddenButton)
-            } else {
-                addHiddenClass(hiddenButton)
-            }
+function getNewSlideIndex(position) {
+    const newSlideIndex = currentSlideIndex + position
+    prevSlideIndex = currentSlideIndex
+    if (newSlideIndex > (slides.length - 1)) {
+        currentSlideIndex = 0
+    } else if (newSlideIndex < 0) {
+        currentSlideIndex = slides.length - 1
+    } else {
+        currentSlideIndex = newSlideIndex
+    }
+    getNewSlide()
+}
+
+function getNewSlide() {
+    slides[prevSlideIndex].classList.remove('show')
+    slides[currentSlideIndex].classList.add('show')
+    navigationDots[prevSlideIndex].classList.remove('showing')
+    navigationDots[currentSlideIndex].classList.add('showing')
+
+    if (slideTimeoutId) clearTimeout(slideTimeoutId);
+
+    slideTimeoutId = setTimeout(function() {
+        getNewSlideIndex(1)
+    }, 5000)
+}
+
+(function() {
+    navigationDots.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            prevSlideIndex = currentSlideIndex
+            currentSlideIndex = index
+            getNewSlide()
         })
     })
-    
-})
+})();
 
-function removeHiddenClass(button) {
-    button.classList.remove('hidden')
-}
-
-function addHiddenClass(button) {
-    button.classList.add('hidden')
-}
+getNewSlide(0)
